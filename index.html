@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Global Dash</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+
+body{
+margin:0;
+overflow:hidden;
+font-family:Arial;
+background:#111;
+}
+
+canvas{
+display:block;
+margin:auto;
+background:linear-gradient(#4facfe,#00f2fe);
+}
+
+#score{
+position:absolute;
+top:10px;
+left:10px;
+font-size:22px;
+color:white;
+}
+
+#gameover{
+position:absolute;
+top:40%;
+width:100%;
+text-align:center;
+color:white;
+font-size:30px;
+display:none;
+}
+
+button{
+padding:10px 20px;
+font-size:18px;
+border:none;
+border-radius:6px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="score">Score: 0</div>
+
+<div id="gameover">
+Game Over<br><br>
+<button onclick="location.reload()">Play Again</button>
+</div>
+
+<canvas id="game"></canvas>
+
+<script>
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let player = {
+x:80,
+y:canvas.height-120,
+w:50,
+h:50,
+vy:0,
+jump:false
+};
+
+let gravity = 1.5;
+let obstacles = [];
+let score = 0;
+let speed = 6;
+let running = true;
+
+function jump(){
+if(!player.jump){
+player.vy = -22;
+player.jump = true;
+}
+}
+
+document.addEventListener("keydown", e=>{
+if(e.code === "Space") jump();
+});
+
+document.addEventListener("touchstart", jump);
+
+function spawnObstacle(){
+obstacles.push({
+x:canvas.width,
+y:canvas.height-100,
+w:40,
+h:60
+});
+}
+
+setInterval(spawnObstacle,1800);
+
+function update(){
+
+if(!running) return;
+
+ctx.clearRect(0,0,canvas.width,canvas.height);
+
+player.vy += gravity;
+player.y += player.vy;
+
+if(player.y >= canvas.height-120){
+player.y = canvas.height-120;
+player.jump = false;
+}
+
+ctx.fillStyle="yellow";
+ctx.fillRect(player.x,player.y,player.w,player.h);
+
+for(let i=obstacles.length-1;i>=0;i--){
+
+let o = obstacles[i];
+o.x -= speed;
+
+ctx.fillStyle="red";
+ctx.fillRect(o.x,o.y,o.w,o.h);
+
+if(
+player.x < o.x + o.w &&
+player.x + player.w > o.x &&
+player.y < o.y + o.h &&
+player.y + player.h > o.y
+){
+gameOver();
+}
+
+if(o.x + o.w < 0){
+obstacles.splice(i,1);
+}
+
+}
+
+score++;
+speed += 0.002;
+
+document.getElementById("score").innerText = "Score: " + score;
+
+requestAnimationFrame(update);
+
+}
+
+function gameOver(){
+running = false;
+document.getElementById("gameover").style.display="block";
+}
+
+update();
+
+</script>
+
+</body>
+</html>
